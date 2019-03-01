@@ -314,6 +314,7 @@
     $sql .= "position='" . db_escape($db, $page['position']) . "', ";
     $sql .= "visible='" . db_escape($db, $page['visible']) . "', ";
     $sql .= "content='" . db_escape($db, $page['content']) . "' ";
+    $sql .= "clicks='" . db_escape($db, $page['clicks']) . "' ";
     $sql .= "WHERE id='" . db_escape($db, $page['id']) . "' ";
     $sql .= "LIMIT 1";
 
@@ -611,5 +612,37 @@
       exit;
     }
   }
+
+
+  function update_page_clicks($page) {
+    global $db;
+
+    $errors = validate_page($page);
+    if(!empty($errors)) {
+      return $errors;
+    }
+
+    $old_page = find_page_by_id($page['id']);
+    $old_position = $old_page['position'];
+    shift_page_positions($old_position, $page['position'], $page['subject_id'], $page['id']);
+
+    $sql = "UPDATE pages SET ";
+    $sql .= "clicks='" . db_escape($db, $page['clicks']+1) . "' ";
+    $sql .= "WHERE id='" . db_escape($db, $page['id']) . "' ";
+    $sql .= "LIMIT 1";
+
+    $result = mysqli_query($db, $sql);
+    // For UPDATE statements, $result is true/false
+    if($result) {
+      return true;
+    } else {
+      // UPDATE failed
+      echo mysqli_error($db);
+      db_disconnect($db);
+      exit;
+    }
+
+  }
+
 
 ?>
